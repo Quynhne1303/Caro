@@ -5,11 +5,12 @@ let mySymbol = '';
 let currentRoom = '';
 let gameMode = '';
 let canvas, ctx;
-let cellSize = 40;
+let cellSize = 50; // Tăng kích thước ô cho dễ click trên mobile
 let offsetX = 0;
 let offsetY = 0;
 let zoom = 1;
 let isDragging = false;
+let dragStartTime = 0;
 let lastX = 0;
 let lastY = 0;
 let board = {};
@@ -182,8 +183,8 @@ function initBoard() {
     canvas.height = 2000;
     
     // Đặt offset để bắt đầu từ giữa
-    offsetX = canvas.width / 2;
-    offsetY = canvas.height / 2;
+    offsetX = canvas.width / 2 - cellSize / 2;
+    offsetY = canvas.height / 2 - cellSize / 2;
     
     board = {};
     
@@ -209,9 +210,9 @@ function drawBoard() {
     const scaledCellSize = cellSize * zoom;
     const gridSize = 50; // Số ô hiển thị
     
-    // Vẽ lưới
-    ctx.strokeStyle = '#ddd';
-    ctx.lineWidth = 1;
+    // Vẽ lưới với đường kẻ rõ nét
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
     
     for (let i = -gridSize; i <= gridSize; i++) {
         // Dọc
@@ -227,38 +228,85 @@ function drawBoard() {
         ctx.stroke();
     }
     
-    // Vẽ các quân cờ
-    ctx.font = `bold ${scaledCellSize * 0.7}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    // Vẽ các ô vuông nhạt làm nền
+    ctx.fillStyle = 'rgba(200, 200, 200, 0.1)';
+    for (let i = -gridSize; i < gridSize; i++) {
+        for (let j = -gridSize; j < gridSize; j++) {
+            const x = offsetX + j * scaledCellSize;
+            const y = offsetY + i * scaledCellSize;
+            ctx.fillRect(x, y, scaledCellSize, scaledCellSize);
+        }
+    }
     
+    // Vẽ lại lưới để nổi bật
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    for (let i = -gridSize; i <= gridSize; i++) {
+        ctx.beginPath();
+        ctx.moveTo(offsetX + i * scaledCellSize, offsetY - gridSize * scaledCellSize);
+        ctx.lineTo(offsetX + i * scaledCellSize, offsetY + gridSize * scaledCellSize);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(offsetX - gridSize * scaledCellSize, offsetY + i * scaledCellSize);
+        ctx.lineTo(offsetX + gridSize * scaledCellSize, offsetY + i * scaledCellSize);
+        ctx.stroke();
+    }
+    
+    // Vẽ các quân cờ vào giữa ô vuông
     for (let key in board) {
         const [row, col] = key.split(',').map(Number);
-        const x = offsetX + col * scaledCellSize;
-        const y = offsetY + row * scaledCellSize;
+        const x = offsetX + col * scaledCellSize + scaledCellSize / 2;
+        const y = offsetY + row * scaledCellSize + scaledCellSize / 2;
         
-        if (board[key] === 'X') {
-            ctx.fillStyle = '#e74c3c';
+        const symbol = board[key];
+        
+        if (symbol === 'X') {
+            // Vẽ X với đường chéo
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 4 * zoom;
+            const padding = scaledCellSize * 0.2;
+            
+            ctx.beginPath();
+            ctx.moveTo(x - scaledCellSize / 2 + padding, y - scaledCellSize / 2 + padding);
+            ctx.lineTo(x + scaledCellSize / 2 - padding, y + scaledCellSize / 2 - padding);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + scaledCellSize / 2 - padding, y - scaledCellSize / 2 + padding);
+            ctx.lineTo(x - scaledCellSize / 2 + padding, y + scaledCellSize / 2 - padding);
+            ctx.stroke();
         } else {
-            ctx.fillStyle = '#3498db';
+            // Vẽ O với vòng tròn
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 4 * zoom;
+            const radius = scaledCellSize * 0.3;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.stroke();
         }
-        
-        ctx.fillText(board[key], x, y);
     }
 }
 
 // Mouse events
 function onMouseDown(e) {
-    isDragging = true;
+    dragStartTime = Date.now();
+    isDragging = false;
     lastX = e.clientX;
     lastY = e.clientY;
 }
 
 function onMouseMove(e) {
+    const deltaX = e.clientX - lastX;
+    const deltaY = e.clientY - lastY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    if (distance > 5) {
+        isDragging = true;
+    }
+    
     if (isDragging) {
-        const deltaX = e.clientX - lastX;
-        const deltaY = e.clientY - lastY;
-        
         offsetX += deltaX;
         offsetY += deltaY;
         
@@ -281,8 +329,8 @@ function onCanvasClick(e) {
     const y = e.clientY - rect.top;
     
     const scaledCellSize = cellSize * zoom;
-    const col = Math.round((x - offsetX) / scaledCellSize);
-    const row = Math.round((y - offsetY) / scaledCellSize);
+    const col = Math.floor((x - offsetX) / scaledCellSize);
+    const row = Math.floor((y - offsetY) / scaledCellSize);
     
     socket.emit('make-move', { row, col });
 }
@@ -294,24 +342,32 @@ function onTouchStart(e) {
         const touch = e.touches[0];
         lastX = touch.clientX;
         lastY = touch.clientY;
-        isDragging = true;
+        dragStartTime = Date.now();
+        isDragging = false;
     }
 }
 
 function onTouchMove(e) {
     e.preventDefault();
-    if (e.touches.length === 1 && isDragging) {
+    if (e.touches.length === 1) {
         const touch = e.touches[0];
         const deltaX = touch.clientX - lastX;
         const deltaY = touch.clientY - lastY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         
-        offsetX += deltaX;
-        offsetY += deltaY;
+        if (distance > 5) {
+            isDragging = true;
+        }
         
-        lastX = touch.clientX;
-        lastY = touch.clientY;
-        
-        drawBoard();
+        if (isDragging) {
+            offsetX += deltaX;
+            offsetY += deltaY;
+            
+            lastX = touch.clientX;
+            lastY = touch.clientY;
+            
+            drawBoard();
+        }
     }
 }
 
@@ -324,8 +380,8 @@ function onTouchEnd(e) {
         const y = touch.clientY - rect.top;
         
         const scaledCellSize = cellSize * zoom;
-        const col = Math.round((x - offsetX) / scaledCellSize);
-        const row = Math.round((y - offsetY) / scaledCellSize);
+        const col = Math.floor((x - offsetX) / scaledCellSize);
+        const row = Math.floor((y - offsetY) / scaledCellSize);
         
         socket.emit('make-move', { row, col });
     }
@@ -345,8 +401,8 @@ function zoomOut() {
 
 function resetView() {
     zoom = 1;
-    offsetX = canvas.width / 2;
-    offsetY = canvas.height / 2;
+    offsetX = canvas.width / 2 - cellSize / 2;
+    offsetY = canvas.height / 2 - cellSize / 2;
     drawBoard();
 }
 

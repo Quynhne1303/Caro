@@ -284,8 +284,10 @@ select:focus {
 
 .board-controls button {
     margin: 0 5px;
-    padding: 10px 20px;
-    font-size: 1em;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    min-width: 60px;
+    min-height: 44px;
 }
 
 .board-container {
@@ -300,6 +302,9 @@ select:focus {
 }
 
 #game-board {
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
     display: block;
     margin: 0 auto;
 }
@@ -335,6 +340,26 @@ select:focus {
 
     h1 {
         font-size: 1.8em;
+        padding: 8px 20px;
+
+        .board-controls {
+            padding: 10px;
+        }
+
+        .board-controls button {
+            padding: 10px 15px;
+            font-size: 1em;
+            margin: 0 3px;
+        }
+
+        input[type="text"] {
+            font-size: 16px; /* Ngăn zoom trên iOS */
+        }
+
+        button {
+            min-height: 44px; /* Minimum touch target cho iOS */
+            padding: 12px 30px;
+        }
     }
 
     .player-info {
