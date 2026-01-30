@@ -10,6 +10,7 @@ let offsetX = 0;
 let offsetY = 0;
 let zoom = 1;
 let isDragging = false;
+let isPointerDown = false;
 let dragStartTime = 0;
 let lastX = 0;
 let lastY = 0;
@@ -206,13 +207,17 @@ function initBoard() {
 // Vẽ bàn cờ
 function drawBoard() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Nền trắng như giấy
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     const scaledCellSize = cellSize * zoom;
     const gridSize = 50; // Số ô hiển thị
     
-    // Vẽ lưới với đường kẻ rõ nét
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
+    // Vẽ lưới màu xanh nhạt
+    ctx.strokeStyle = '#6fb6ff';
+    ctx.lineWidth = 1.5;
     
     for (let i = -gridSize; i <= gridSize; i++) {
         // Dọc
@@ -228,19 +233,9 @@ function drawBoard() {
         ctx.stroke();
     }
     
-    // Vẽ các ô vuông nhạt làm nền
-    ctx.fillStyle = 'rgba(200, 200, 200, 0.1)';
-    for (let i = -gridSize; i < gridSize; i++) {
-        for (let j = -gridSize; j < gridSize; j++) {
-            const x = offsetX + j * scaledCellSize;
-            const y = offsetY + i * scaledCellSize;
-            ctx.fillRect(x, y, scaledCellSize, scaledCellSize);
-        }
-    }
-    
     // Vẽ lại lưới để nổi bật
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#6fb6ff';
+    ctx.lineWidth = 1.5;
     for (let i = -gridSize; i <= gridSize; i++) {
         ctx.beginPath();
         ctx.moveTo(offsetX + i * scaledCellSize, offsetY - gridSize * scaledCellSize);
@@ -292,12 +287,14 @@ function drawBoard() {
 // Mouse events
 function onMouseDown(e) {
     dragStartTime = Date.now();
+    isPointerDown = true;
     isDragging = false;
     lastX = e.clientX;
     lastY = e.clientY;
 }
 
 function onMouseMove(e) {
+    if (!isPointerDown) return;
     const deltaX = e.clientX - lastX;
     const deltaY = e.clientY - lastY;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -319,6 +316,7 @@ function onMouseMove(e) {
 
 function onMouseUp() {
     isDragging = false;
+    isPointerDown = false;
 }
 
 function onCanvasClick(e) {
@@ -343,12 +341,14 @@ function onTouchStart(e) {
         lastX = touch.clientX;
         lastY = touch.clientY;
         dragStartTime = Date.now();
+        isPointerDown = true;
         isDragging = false;
     }
 }
 
 function onTouchMove(e) {
     e.preventDefault();
+    if (!isPointerDown) return;
     if (e.touches.length === 1) {
         const touch = e.touches[0];
         const deltaX = touch.clientX - lastX;
@@ -386,6 +386,7 @@ function onTouchEnd(e) {
         socket.emit('make-move', { row, col });
     }
     isDragging = false;
+    isPointerDown = false;
 }
 
 // Zoom controls
