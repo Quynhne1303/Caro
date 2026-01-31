@@ -268,8 +268,8 @@ function drawBoard() {
     // Vẽ các quân cờ vào giữa ô vuông
     for (let key in board) {
         const [row, col] = key.split(',').map(Number);
-        const x = offsetX + col * scaledCellSize + scaledCellSize / 2;
-        const y = offsetY + row * scaledCellSize + scaledCellSize / 2;
+        const x = offsetX + col * scaledCellSize;
+        const y = offsetY + row * scaledCellSize;
         
         const symbol = board[key];
         
@@ -307,7 +307,7 @@ function drawBoard() {
         
         ctx.strokeStyle = '#ff3333';
         ctx.lineWidth = 3 * zoom;
-        ctx.strokeRect(x, y, scaledCellSize, scaledCellSize);
+        ctx.strokeRect(x - scaledCellSize / 2, y - scaledCellSize / 2, scaledCellSize, scaledCellSize);
     }
 }
 
@@ -355,8 +355,9 @@ function onCanvasClick(e) {
     const y = e.clientY - rect.top;
     
     const scaledCellSize = cellSize * zoom;
-    const col = Math.floor((x - offsetX) / scaledCellSize);
-    const row = Math.floor((y - offsetY) / scaledCellSize);
+    // Round to nearest cell instead of floor
+    const col = Math.round((x - offsetX) / scaledCellSize);
+    const row = Math.round((y - offsetY) / scaledCellSize);
     
     socket.emit('make-move', { row, col });
 }
@@ -408,8 +409,9 @@ function onTouchEnd(e) {
         const y = touch.clientY - rect.top;
         
         const scaledCellSize = cellSize * zoom;
-        const col = Math.floor((x - offsetX) / scaledCellSize);
-        const row = Math.floor((y - offsetY) / scaledCellSize);
+        // Round to nearest cell instead of floor
+        const col = Math.round((x - offsetX) / scaledCellSize);
+        const row = Math.round((y - offsetY) / scaledCellSize);
         
         socket.emit('make-move', { row, col });
     }
