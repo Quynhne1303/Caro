@@ -389,22 +389,83 @@ function onTouchEnd(e) {
     isPointerDown = false;
 }
 
-// Zoom controls
-function zoomIn() {
-    zoom = Math.min(zoom + 0.2, 3);
-    drawBoard();
+// Pinch-to-zoom support
+let lastDistance = 0;
+
+function getDistance(touches) {
+    if (touches.length < 2) return 0;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
-function zoomOut() {
-    zoom = Math.max(zoom - 0.2, 0.5);
-    drawBoard();
+function onTouchStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        lastDistance = getDistance(e.touches);
+        isPointerDown = true;
+        isDragging = false;
+    } else if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        lastX = touch.clientX;
+        lastY = touch.clientY;
+        dragStartTime = Date.now();
+        isPointerDown = true;
+        isDragging = false;
+    }
 }
 
-function resetView() {
-    zoom = 1;
-    offsetX = canvas.width / 2 - cellSize / 2;
-    offsetY = canvas.height / 2 - cellSize / 2;
-    drawBoard();
+function onTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        // Pinch zoom
+        const currentDistance = getDistance(e.touches);
+        if (lastDistance > 0) {
+            const zoomFactor = currentDistance / lastDistance;
+            zoom = Math.max(0.5, Math.min(zoom * zoomFactor, 3));
+            drawBoard();
+        }
+        lastDistance = currentDistance;
+        isDragging = false;
+    } else if (e.touches.length === 1 && isPointerDown) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - lastX;
+        const deltaY = touch.clientY - lastY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        if (distance > 5) {
+            isDragging = true;
+        }
+        
+        if (isDragging) {
+            offsetX += deltaX;
+            offsetY += deltaY;
+            
+            lastX = touch.clientX;
+            lastY = touch.clientY;
+            
+            drawBoard();
+        }
+    }
+}
+
+function onTouchEnd(e) {
+    e.preventDefault();
+    lastDistance = 0;
+    if (e.changedTouches.length === 1 && !isDragging) {
+        const touch = e.changedTouches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        const scaledCellSize = cellSize * zoom;
+        const col = Math.floor((x - offsetX) / scaledCellSize);
+        const row = Math.floor((y - offsetY) / scaledCellSize);
+        
+        socket.emit('make-move', { row, col });
+    }
+    isDragging = false;
+    isPointerDown = false;
 }
 
 // Enter key submit
