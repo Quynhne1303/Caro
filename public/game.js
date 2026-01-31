@@ -93,8 +93,8 @@ function focusOnCell(row, col) {
     const centerY = canvas.height / 2;
     
     // Tính offsetX, offsetY sao cho ô (row, col) ở giữa màn hình
-    offsetX = centerX - (col * scaledCellSize + scaledCellSize / 2);
-    offsetY = centerY - (row * scaledCellSize + scaledCellSize / 2);
+    offsetX = centerX - col * scaledCellSize;
+    offsetY = centerY - row * scaledCellSize;
     
     isAutoFocus = true;
     drawBoard();
@@ -265,7 +265,7 @@ function drawBoard() {
         ctx.stroke();
     }
     
-    // Vẽ các quân cờ vào giữa ô vuông
+    // Vẽ các quân cờ tại giao điểm
     for (let key in board) {
         const [row, col] = key.split(',').map(Number);
         const x = offsetX + col * scaledCellSize;
@@ -277,22 +277,22 @@ function drawBoard() {
             // Vẽ X với đường chéo
             ctx.strokeStyle = '#e74c3c';
             ctx.lineWidth = 4 * zoom;
-            const padding = scaledCellSize * 0.2;
+            const size = scaledCellSize * 0.35;
             
             ctx.beginPath();
-            ctx.moveTo(x - scaledCellSize / 2 + padding, y - scaledCellSize / 2 + padding);
-            ctx.lineTo(x + scaledCellSize / 2 - padding, y + scaledCellSize / 2 - padding);
+            ctx.moveTo(x - size, y - size);
+            ctx.lineTo(x + size, y + size);
             ctx.stroke();
             
             ctx.beginPath();
-            ctx.moveTo(x + scaledCellSize / 2 - padding, y - scaledCellSize / 2 + padding);
-            ctx.lineTo(x - scaledCellSize / 2 + padding, y + scaledCellSize / 2 - padding);
+            ctx.moveTo(x + size, y - size);
+            ctx.lineTo(x - size, y + size);
             ctx.stroke();
         } else {
             // Vẽ O với vòng tròn
             ctx.strokeStyle = '#3498db';
             ctx.lineWidth = 4 * zoom;
-            const radius = scaledCellSize * 0.3;
+            const radius = scaledCellSize * 0.35;
             
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -307,7 +307,8 @@ function drawBoard() {
         
         ctx.strokeStyle = '#ff3333';
         ctx.lineWidth = 3 * zoom;
-        ctx.strokeRect(x - scaledCellSize / 2, y - scaledCellSize / 2, scaledCellSize, scaledCellSize);
+        const boxSize = scaledCellSize * 0.45;
+        ctx.strokeRect(x - boxSize, y - boxSize, boxSize * 2, boxSize * 2);
     }
 }
 
