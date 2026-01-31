@@ -419,6 +419,8 @@ function onTouchEnd(e) {
 
 // Pinch-to-zoom support
 let lastDistance = 0;
+let pinchCenterX = 0;
+let pinchCenterY = 0;
 
 function getDistance(touches) {
     if (touches.length < 2) return 0;
@@ -427,10 +429,21 @@ function getDistance(touches) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
+function getPinchCenter(touches) {
+    if (touches.length < 2) return { x: 0, y: 0 };
+    return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+}
+
 function onTouchStart(e) {
     e.preventDefault();
     if (e.touches.length === 2) {
         lastDistance = getDistance(e.touches);
+        const center = getPinchCenter(e.touches);
+        pinchCenterX = center.x;
+        pinchCenterY = center.y;
         isPointerDown = true;
         isDragging = false;
     } else if (e.touches.length === 1) {
@@ -446,16 +459,33 @@ function onTouchStart(e) {
 function onTouchMove(e) {
     e.preventDefault();
     if (e.touches.length === 2) {
-        // Pinch zoom
+        // Pinch zoom with fixed center point
         const currentDistance = getDistance(e.touches);
+        const center = getPinchCenter(e.touches);
+        
         if (lastDistance > 0) {
+            // Calculate world position before zoom
+            const rect = canvas.getBoundingClientRect();
+            const canvasX = center.x - rect.left;
+            const canvasY = center.y - rect.top;
+            const worldX = (canvasX - offsetX) / zoom;
+            const worldY = (canvasY - offsetY) / zoom;
+            
             const zoomFactor = currentDistance / lastDistance;
             // Apply damping factor to slow down zoom speed
             const smoothZoom = 1 + (zoomFactor - 1) * 0.25;
-            zoom = Math.max(0.5, Math.min(zoom * smoothZoom, 3));
+            const newZoom = Math.max(0.5, Math.min(zoom * smoothZoom, 3));
+            
+            // Adjust offset to keep the pinch center point fixed
+            offsetX = canvasX - worldX * newZoom;
+            offsetY = canvasY - worldY * newZoom;
+            
+            zoom = newZoom;
             drawBoard();
         }
         lastDistance = currentDistance;
+        pinchCenterX = center.x;
+        pinchCenterY = center.y;
         isDragging = false;
     } else if (e.touches.length === 1 && isPointerDown) {
         const touch = e.touches[0];
