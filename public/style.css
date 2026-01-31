@@ -1,10 +1,6 @@
 * {
     margin: 0;
     padding: 0;
-    }
-
-    .game-header {
-        padding: 10px 12px;
     box-sizing: border-box;
 }
 
@@ -20,8 +16,16 @@ body {
 .screen {
     display: none;
     width: 100%;
+}
+
+.screen.active {
+    display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
 .container {
     background: white;
     border-radius: 20px;
@@ -175,7 +179,7 @@ select:focus {
     margin-top: 15px;
 }
 
-/* Game Screen Styles */
+/* ====== GAME SCREEN ====== */
 .game-container {
     width: 100%;
     height: 100vh;
@@ -185,57 +189,58 @@ select:focus {
 }
 
 .game-header {
-    background: #f5f7fb;
+    background: white;
     color: #222;
-    padding: 10px 12px;
-    border-bottom: 2px solid #cfe1ff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 15px 20px;
+    border-bottom: 2px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
 .player-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 800px;
-    margin: 0 auto;
-    gap: 8px;
+    width: 100%;
+    gap: 12px;
 }
 
 .player {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: #f9e08b;
-    border-radius: 10px;
-    min-width: 140px;
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f0f5ff;
+    border-radius: 8px;
+    border: 1px solid #ddeeff;
+    flex: 1;
+    max-width: 250px;
 }
 
 .player.active {
-    background: #ffe079;
-    box-shadow: 0 0 0 2px rgba(255, 208, 74, 0.6);
+    background: #e3f2ff;
+    border: 2px solid #667eea;
 }
 
 .player .symbol {
-    font-size: 1.2em;
+    font-size: 1.5em;
     font-weight: bold;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: white;
-    color: #2d5bd1;
+    color: #667eea;
     border-radius: 50%;
-    border: 2px solid #8db7ff;
+    border: 2px solid #ddd;
+    flex-shrink: 0;
 }
 
 .player .name {
-    font-size: 0.95em;
+    font-size: 1em;
     font-weight: bold;
     color: #333;
-    max-width: 120px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -243,36 +248,43 @@ select:focus {
 
 .timer-display {
     text-align: center;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 90px;
 }
 
 #timer {
-    font-size: 1.4em;
+    font-size: 2em;
     font-weight: bold;
-    background: #e9edf5;
-    padding: 6px 10px;
-    border-radius: 10px;
-    border: 1px solid #cdd7ea;
+    background: #fff3cd;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid #ffc107;
+    color: #ff6b6b;
+    line-height: 1.2;
 }
 
 .timer-label {
-    margin-top: 2px;
-    font-size: 0.75em;
+    margin-top: 4px;
+    font-size: 0.85em;
     color: #555;
 }
 
 .game-mode-display {
     text-align: center;
-    margin-top: 6px;
+    margin-top: 8px;
     font-size: 0.9em;
-    color: #444;
+    color: #666;
 }
 
 .turn-indicator {
     text-align: center;
-    margin-top: 4px;
+    margin-top: 6px;
     font-size: 0.95em;
     font-weight: 600;
-    color: #2d5bd1;
+    color: #667eea;
 }
 
 .board-wrapper {
@@ -280,21 +292,23 @@ select:focus {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: #f5f5f5;
+    background: #fafafa;
 }
 
 .board-controls {
-    padding: 15px;
+    padding: 12px;
     background: white;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 1px solid #ddd;
     text-align: center;
+    flex-shrink: 0;
 }
+
 .board-controls button {
-    margin: 0 5px;
-    padding: 12px 25px;
-    font-size: 1.1em;
-    min-width: 60px;
-    min-height: 44px;
+    margin: 0 6px;
+    padding: 10px 20px;
+    font-size: 1em;
+    min-width: 50px;
+    min-height: 40px;
 }
 
 .board-container {
@@ -339,7 +353,9 @@ select:focus {
     color: #666;
 }
 
-/* Responsive */
+/* ====== RESPONSIVE ====== */
+
+/* MOBILE - Nhỏ gọn, bàn cờ lớn */
 @media (max-width: 768px) {
     .container {
         padding: 20px;
@@ -350,51 +366,72 @@ select:focus {
     }
 
     .game-header {
-        padding: 8px 8px;
+        padding: 8px 10px;
+        background: #f9fafb;
     }
 
     .player-info {
-        flex-direction: row;
-        flex-wrap: nowrap;
         gap: 6px;
-        justify-content: space-between;
     }
 
     .player {
-        width: auto;
-        justify-content: center;
-        padding: 4px 6px;
-        min-width: 0;
+        padding: 5px 8px;
+        max-width: 50%;
         gap: 6px;
+        flex: 0 1 auto;
     }
 
     .player .symbol {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         font-size: 1em;
     }
 
     .player .name {
-        font-size: 0.85em;
+        font-size: 0.8em;
         max-width: 70px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    }
+
+    .timer-display {
+        min-width: 65px;
     }
 
     #timer {
-        font-size: 1em;
+        font-size: 1.2em;
         padding: 4px 8px;
+        border-radius: 6px;
     }
 
     .timer-label {
         font-size: 0.65em;
+        margin-top: 2px;
     }
 
     .game-mode-display,
     .turn-indicator {
-        font-size: 0.85em;
-        margin-top: 4px;
+        font-size: 0.8em;
+        margin-top: 3px;
+    }
+
+    .board-controls {
+        padding: 8px;
+    }
+
+    .board-controls button {
+        padding: 8px 12px;
+        font-size: 0.9em;
+        margin: 0 3px;
+        min-width: 45px;
+        min-height: 36px;
+    }
+
+    input[type="text"] {
+        font-size: 16px;
+    }
+
+    button {
+        min-height: 44px;
+        padding: 12px 30px;
     }
 
     .lobby-options {
@@ -404,23 +441,63 @@ select:focus {
     .option-card {
         padding: 20px;
     }
+}
+
+/* DESKTOP - Rõ ràng, header to, timer nổi bật */
+@media (min-width: 769px) {
+    .game-header {
+        padding: 18px 30px;
+    }
+
+    .player-info {
+        gap: 20px;
+    }
+
+    .player {
+        padding: 12px 16px;
+        max-width: none;
+        flex: 0 1 auto;
+    }
+
+    .player .symbol {
+        width: 45px;
+        height: 45px;
+        font-size: 1.8em;
+    }
+
+    .player .name {
+        font-size: 1.1em;
+        max-width: 200px;
+    }
+
+    .timer-display {
+        min-width: 120px;
+    }
+
+    #timer {
+        font-size: 2.2em;
+        padding: 12px 24px;
+        border-radius: 10px;
+    }
+
+    .timer-label {
+        font-size: 0.95em;
+        margin-top: 6px;
+    }
+
+    .game-mode-display,
+    .turn-indicator {
+        font-size: 1em;
+        margin-top: 8px;
+    }
 
     .board-controls {
-        padding: 10px;
+        padding: 15px;
     }
 
     .board-controls button {
-        padding: 10px 15px;
-        font-size: 1em;
-        margin: 0 3px;
-    }
-
-    input[type="text"] {
-        font-size: 16px; /* Ngăn zoom trên iOS */
-    }
-
-    button {
-        min-height: 44px; /* Minimum touch target cho iOS */
-        padding: 12px 30px;
+        padding: 12px 25px;
+        font-size: 1.1em;
+        margin: 0 8px;
     }
 }
