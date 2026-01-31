@@ -15,6 +15,8 @@ let dragStartTime = 0;
 let lastX = 0;
 let lastY = 0;
 let board = {};
+let lastMove = null; // Ô vừa được đi {row, col}
+let isAutoFocus = false; // Đang focus vào ô vừa đi
 
 // Lấy tham số room từ URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -84,6 +86,20 @@ function backToLobby() {
     location.reload();
 }
 
+// Focus camera vào một ô cụ thể (đặt ô ở giữa màn hình)
+function focusOnCell(row, col) {
+    const scaledCellSize = cellSize * zoom;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Tính offsetX, offsetY sao cho ô (row, col) ở giữa màn hình
+    offsetX = centerX - (col * scaledCellSize + scaledCellSize / 2);
+    offsetY = centerY - (row * scaledCellSize + scaledCellSize / 2);
+    
+    isAutoFocus = true;
+    drawBoard();
+}
+
 // Hiển thị màn hình
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
@@ -125,7 +141,8 @@ socket.on('game-start', (data) => {
 
 socket.on('move-made', (data) => {
     board[`${data.row},${data.col}`] = data.symbol;
-    drawBoard();
+    lastMove = { row: data.row, col: data.col }; // Lưu ô vừa đi
+    focusOnCell(data.row, data.col); // Focus camera vào ô vừa đi
     updateTurnIndicator(data.currentTurn);
 });
 
@@ -282,6 +299,16 @@ function drawBoard() {
             ctx.stroke();
         }
     }
+    
+    // Vẽ viền đỏ xung quanh ô vừa đi của đối phương
+    if (lastMove) {
+        const x = offsetX + lastMove.col * scaledCellSize;
+        const y = offsetY + lastMove.row * scaledCellSize;
+        
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 3 * zoom;
+        ctx.strokeRect(x, y, scaledCellSize, scaledCellSize);
+    }
 }
 
 // Mouse events
@@ -304,6 +331,7 @@ function onMouseMove(e) {
     }
     
     if (isDragging) {
+        isAutoFocus = false; // Bỏ focus auto khi người chơi kéo
         offsetX += deltaX;
         offsetY += deltaY;
         
