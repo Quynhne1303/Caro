@@ -450,7 +450,9 @@ function onTouchMove(e) {
         const currentDistance = getDistance(e.touches);
         if (lastDistance > 0) {
             const zoomFactor = currentDistance / lastDistance;
-            zoom = Math.max(0.5, Math.min(zoom * zoomFactor, 3));
+            // Apply damping factor to slow down zoom speed
+            const smoothZoom = 1 + (zoomFactor - 1) * 0.25;
+            zoom = Math.max(0.5, Math.min(zoom * smoothZoom, 3));
             drawBoard();
         }
         lastDistance = currentDistance;
